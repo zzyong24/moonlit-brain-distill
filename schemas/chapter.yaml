@@ -1,0 +1,59 @@
+# Chapter 数据结构（Phase 4 输出）
+# 1 个章节 → 1 份此 YAML
+# v2.0 新增：chapter_type / content_sections / extended_thinking 三件套
+# 升级说明：v1.0 → v2.0 是破坏性变更,旧 chapter_NN.yaml 缺新字段,需重蒸馏或人工补
+
+# 基础元数据
+chapter_number: int               # 章节序号（1-based）
+title: string                     # 章节简短标题（不含"第N章"前缀）
+chapter_type: enum                # 章节类型（v2.0 新增,必填,二选一错即拒收）
+                                  # 取值：
+                                  #   基础概念   — 解释底层原理
+                                  #   方法论     — 复用方法
+                                  #   行业判断   — 市场/产品分析
+                                  #   案例分析   — 完整三段案例
+                                  #   心境反思   — 个人状态/成长
+                                  #   哲学总纲   — 顶层世界观（首/末章）
+                                  # 详细结构见 references/chapter-types.md
+
+# 主体内容（v2.0 硬约束：只含【原话】+【蒸馏】,严禁【扩展】混入）
+content: string                   # 章节正文 Markdown,渲染时只显示【原话】+【蒸馏】
+                                  # 必须与 content_sections 的 body 拼起来等价
+content_sections:                 # 章节的结构化拆分（v2.0 必填,≥ 5 节）
+  - section: string               # 小节标题（"1.0 / 1.1 / 1.2 ...")
+    type: enum                    # 本节类型（v2.0 必填）
+                                  #   原话 — 来自 transcript 的逐字引用
+                                  #   蒸馏 — 基于多个 claim 的合成
+                                  #   扩展 — AI 自己的类比/推断/外部知识
+                                  # 硬约束：type=扩展 的 section 必须移到 extended_thinking
+    body: string                  # 本节正文
+    source_refs: [string]         # 本节引用来源（v2.0 必填,触发 critic 校验）
+                                  # type=原话 → [video_id]
+                                  # type=蒸馏 → [claim_id 列表, 至少 1 个]
+                                  # type=扩展 → null（但本字段禁止出现在 content 章节）
+
+# 延伸思考（v2.0 新增,所有【扩展】的物理隔离区）
+extended_thinking: string         # 独立小节,只放 type=扩展 的内容
+                                  # 渲染时显示为"## 延伸思考"独立区块
+                                  # 每段必须以 "> 依据:" 开头：
+                                  #   - "> 依据: <claim_id>" (基于某个 claim 推断)
+                                  #   - "> 依据: AI 推断,无作者依据" (纯外部知识)
+
+# 引用追踪（v1.0 已有,保持）
+used_claim_ids: [string]          # 本章引用的 claim 编号（v001_c001 形式）
+                                  # 必须 ≥ 15 个/章（v1.0 约束保留）
+                                  # critic 用此做 topic_count_consistency 检查
+
+# 元数据（v2.0 新增,critic/auditor 用）
+metadata:                         # 章节级统计
+  word_count: int                 # content 字段字数（不含 extended_thinking）
+  extended_word_count: int        # extended_thinking 字段字数
+  primary_topic: string           # 本章主要服务的 topic 名称（来自 topics.yaml）
+  supporting_topics: [string]     # 本章次要服务的 topic 名称列表
+
+# v2.0 自检（chapter-writer 产出时自填,critic 复核）
+self_check:
+  all_sections_have_type: bool          # 是否每节都有 type 标签
+  no_extension_in_content: bool         # content 是否无 type=扩展 的 section
+  source_refs_all_filled: bool          # 原话+蒸馏节是否都有 source_refs
+  extended_thinking_well_attributed: bool  # extended_thinking 每段是否都有"依据"

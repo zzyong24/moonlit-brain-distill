@@ -1,0 +1,31 @@
+# Claim 数据结构（Phase 1 输出）
+# 1 份文本 → 1 份此 YAML
+video_id: string              # 文本来源标识（文件名或 hash）
+title: string                 # 文本标题
+claims:                       # 核心观点（作者坚信什么）
+  - id: string                # 形如 c001, c002
+    text: string              # 观点正文
+    confidence: number        # 0-1，本视频中证据强度
+frameworks:                   # 可复用方法论
+  - id: string                # 形如 f001
+    name: string              # 方法论名称（用创作者的语言）
+    steps:                    # 步骤列表（有序）
+      - string
+    when_to_use: string       # 使用场景
+numbers:                      # 数字（百分比/排名/年份/阈值/统计）必须原样保留
+  - value: string             # 形如 "34%" / "7600万" / "2024"
+    context: string           # 数字的含义/出处
+quotes:                       # 金句（原话，必须引号）
+  - text: string
+    context: string           # 在文中讨论什么
+cases:                        # 案例（问题-方案-结果）
+  - id: string                # 形如 case001
+    problem: string
+    solution: string
+    result: string
+anti_beliefs:                 # 反对的观点
+  - text: string              # 作者反对什么
+    reason: string            # 作者的理由
+decision_rules:               # 决策原则
+  - text: string              # 怎么决策
+    example: string           # 具体例子

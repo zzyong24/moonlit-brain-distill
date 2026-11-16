@@ -1,0 +1,4 @@
+interface:
+  display_name: "月明·思想体系蒸馏"
+  short_description: "把同一创作者的多份文本整理为带来源的思想体系"
+  default_prompt: "使用 moonlit-brain-distill，将获准使用的同一创作者材料整理为可追溯的思想体系，区分原话、蒸馏和扩展。"

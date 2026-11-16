@@ -1,0 +1,14 @@
+# Topic 数据结构（Phase 2 输出）
+# claim-pool/ 全部 → 1 份此 YAML
+# 一个 claim 可同时属于多个 topic
+topic: string                 # 主题名（用创作者的语言）
+description: string           # 主题描述（1-2 段）
+subtopics:                    # 子主题
+  - string
+claim_ids:                    # 引用 claim.id（注意是 c001/c002 这种，不是 video_id）
+  - string
+source_files:                 # 引用 video_id（来源文件名或 hash）
+  - string
+cross_references:             # 与其他 topic 的关联
+  - topic: string             # 另一个 topic 名
+    relationship: string      # "对立" / "互补" / "递进" / "包含"

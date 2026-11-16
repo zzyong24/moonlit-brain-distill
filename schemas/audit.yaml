@@ -1,0 +1,91 @@
+# Audit Report 数据结构（Phase 4.5 输出）
+# 1 轮蒸馏 → 1 份此 YAML
+# v2.0 新增：独立的元数据一致性校验,失败直接回 Phase 1/2/4,不让 critic 处理
+#
+# 设计原则：
+#   - 只校验"数字对得上",不校验"内容好不好"（内容由 critic 管）
+#   - 失败 → 立即停止后续阶段,避免浪费 token
+#   - 全 pass → 允许 critic 接管
+
+audited_at: string                # ISO8601 时间戳
+input_dir: string                 # 被审计的目录（如 <工作目录>/）
+auditor_version: string           # auditor 实现版本（"1.0"）
+
+# 6 项硬校验
+checks:
+  - name: materials_total         # 原始材料总数
+    description: "input_dir 下的 .txt / .md 源文件数"
+    expected: int                 # 期望值（来自 dispatch 列表 union）
+    actual: int                   # 实际值（来自 ls <input_dir>/*.txt | wc -l）
+    status: enum                  # pass | fail
+    command: string               # 实际跑的 shell 命令（可重现）
+    note: string                  # 失败时说明
+
+  - name: materials_success       # 成功蒸馏的视频数
+    description: "claim-pool/*.yaml 中有非空 claims 字段的 yaml 数"
+    expected: int
+    actual: int                   # 实际值（ls claim-pool/*.yaml | xargs grep -l "claims:" | wc -l）
+    status: enum
+    command: string
+    note: string
+
+  - name: materials_failed        # 失败的视频数
+    description: "dispatch 列表中已派发但 claim-pool 里没有 yaml 的 video_id 数"
+    expected: int
+    actual: int
+    status: enum
+    command: string
+    note: string
+
+  - name: materials_pending       # 待派发 / 未派发的视频数
+    description: "input_dir 里有源文件但没进 dispatch 列表的数"
+    expected: int                 # 期望 = 0（用户要全量蒸馏）
+    actual: int
+    status: enum
+    command: string
+    note: string
+
+  - name: claim_count             # 全部 claim 计数
+    description: "claim-pool 所有 yaml 的 claims 数组长度之和"
+    expected: int
+    actual: int                   # cat claim-pool/*.yaml | grep -c "  - id:"
+    status: enum
+    command: string
+    note: string
+
+  - name: topic_count             # 主题数
+    description: "topics.yaml 的 topic 数组长度"
+    expected: int                 # 期望 5-15
+    actual: int                   # grep -c "^- topic:" topics.yaml
+    status: enum
+    command: string
+    note: string
+
+  - name: chapter_count           # 章节数
+    description: "chapters/ 下的 chapter_NN.yaml 数"
+    expected: int                 # 期望 4-8
+    actual: int                   # ls chapters/chapter_*.yaml | wc -l
+    status: enum
+    command: string
+    note: string
+
+# 派生一致性检查（基于上面 6 项的二次校验）
+consistency:
+  total_equals_sum: bool          # materials_total == success + failed + pending
+  chapter_claim_density: float    # claim_count / chapter_count（健康范围 50-200）
+  topic_claim_density: float      # claim_count / topic_count（健康范围 30-150）
+
+# 最终裁决
+verdict: enum                     # pass | fail
+action_required: enum             # pass-through | rerun-phase-1 | rerun-phase-2 | rerun-phase-4
+human_review_required: bool       # 是否需要人工介入（默认 false）
+
+# 失败时的诊断建议
+diagnosis:                        # 仅在 verdict=fail 时填充
+  primary_failure: string         # 主要失败项的 name
+  cascade_failures: [string]      # 因主失败连带失败的其他项
+  recommendation: string          # 给主 Agent 的具体建议
+  example_fix: string             # 修复示例（shell 命令或 agent 重派指令）
+
+# 备注
+note: string                      # 任意补充说明
